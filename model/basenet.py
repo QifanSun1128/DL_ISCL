@@ -1,4 +1,4 @@
-from torchvision.models import alexnet, vgg16, alexnet_weights, vgg16_weights
+from torchvision.models import alexnet, vgg16, AlexNet_Weights, VGG16_Weights
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
@@ -44,7 +44,7 @@ class AlexNetBase(nn.Module):
 
         # Load the AlexNet model with or without pretrained weights
         if pret:
-            model_alexnet = alexnet(weights=alexnet_weights.ALEXNET_IMAGENET1K_V1)
+            model_alexnet = alexnet(weights=AlexNet_Weights.ALEXNET_IMAGENET1K_V1)
         else:
             model_alexnet = alexnet(weights=None)
 
@@ -72,7 +72,7 @@ class VGGBase(nn.Module):
         super(VGGBase, self).__init__()
 
         if pret:
-            vgg16_model = vgg16(weights=vgg16_weights.VGG16_IMAGENET1K_V1)
+            vgg16_model = vgg16(weights=VGG16_Weights.VGG16_IMAGENET1K_V1)
         else:
             vgg16_model = vgg16(weights=None)
 
