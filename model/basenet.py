@@ -1,4 +1,4 @@
-from torchvision import models
+from torchvision.models import alexnet, vgg16, alexnet_weights, vgg16_weights
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
@@ -41,16 +41,21 @@ def l2_norm(input):
 class AlexNetBase(nn.Module):
     def __init__(self, pret=True):
         super(AlexNetBase, self).__init__()
-        model_alexnet = models.alexnet(pretrained=pret)
-        self.features = nn.Sequential(
-            *list(model_alexnet.features._modules.values())[:]
-        )
-        self.classifier = nn.Sequential()
-        for i in range(6):
-            self.classifier.add_module(
-                "classifier" + str(i), model_alexnet.classifier[i]
-            )
-        self.__in_features = model_alexnet.classifier[6].in_features
+
+        # Load the AlexNet model with or without pretrained weights
+        if pret:
+            model_alexnet = alexnet(weights=alexnet_weights.ALEXNET_IMAGENET1K_V1)
+        else:
+            model_alexnet = alexnet(weights=None)
+
+        # Use the features from AlexNet
+        self.features = nn.Sequential(*model_alexnet.features)
+
+        # Reconstruct the classifier, omitting the last layer
+        self.classifier = nn.Sequential(*model_alexnet.classifier[:-1])
+
+        # Store the number of input features for the last layer
+        self.__in_features = model_alexnet.classifier[-1].in_features
 
     def forward(self, x):
         x = self.features(x)
@@ -65,9 +70,23 @@ class AlexNetBase(nn.Module):
 class VGGBase(nn.Module):
     def __init__(self, pret=True, no_pool=False):
         super(VGGBase, self).__init__()
-        vgg16 = models.vgg16(pretrained=pret)
-        self.classifier = nn.Sequential(*list(vgg16.classifier._modules.values())[:-1])
-        self.features = nn.Sequential(*list(vgg16.features._modules.values())[:])
+
+        if pret:
+            vgg16_model = vgg16(weights=vgg16_weights.VGG16_IMAGENET1K_V1)
+        else:
+            vgg16_model = vgg16(weights=None)
+
+        # If no pooling is required, remove the last pooling layer from features
+        if no_pool:
+            features = list(vgg16_model.features.children())[:-1]
+        else:
+            features = list(vgg16_model.features.children())
+
+        self.features = nn.Sequential(*features)
+
+        classifier = list(vgg16_model.classifier.children())[:-1]
+        self.classifier = nn.Sequential(*classifier)
+
         self.s = nn.Parameter(torch.FloatTensor([10]))
 
     def forward(self, x):
