@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from torch.autograd import Variable
 from model.resnet import resnet34
 from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
@@ -19,9 +20,9 @@ parser = argparse.ArgumentParser(description="SSDA Classification")
 parser.add_argument(
     "--steps",
     type=int,
-    default=2000,
+    default=1100,
     metavar="N",
-    help="maximum number of iterations " "to train (default: 2000)",
+    help="maximum number of iterations " "to train (default: 1100)",
 )
 parser.add_argument(
     "--method",
@@ -350,6 +351,52 @@ def train():
                         ),
                     ),
                 )
+
+    # Function to fill in missing values in val and test metrics
+    def fill_metrics(metrics, interval, total_steps):
+        filled_metrics = []
+        for i in range(total_steps):
+            index = i // interval
+            filled_metrics.append(metrics[min(index, len(metrics) - 1)])
+        return filled_metrics
+
+    # Fill in missing values for val_loss and test_loss
+    total_steps = len(info_dict["train_loss"])
+    val_loss_filled = fill_metrics(
+        info_dict["val_loss"], args.save_interval, total_steps
+    )
+    test_loss_filled = fill_metrics(
+        info_dict["test_loss"], args.save_interval, total_steps
+    )
+
+    # Plot for train_loss vs validation loss vs test loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(info_dict["train_loss"], label="Train Loss")
+    plt.plot(val_loss_filled, label="Validation Loss")
+    plt.plot(test_loss_filled, label="Test Loss")
+    plt.xlabel("Steps")
+    plt.ylabel("Loss")
+    plt.title("Train vs Validation vs Test Loss")
+    plt.legend()
+    plt.show()
+
+    # Plot for train_entropy
+    plt.figure(figsize=(10, 6))
+    plt.plot(info_dict["train_entropy"])
+    plt.xlabel("Steps")
+    plt.ylabel("Entropy")
+    plt.title("Train Entropy")
+    plt.show()
+
+    # Plot for validation accuracy vs test accuracy
+    plt.figure(figsize=(10, 6))
+    plt.plot(info_dict["val_acc"], label="Validation Accuracy")
+    plt.plot(info_dict["test_acc"], label="Test Accuracy")
+    plt.xlabel("Steps")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Validation vs Test Accuracy")
+    plt.legend()
+    plt.show()
 
 
 def test(loader, is_val=False):
