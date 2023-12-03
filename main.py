@@ -19,9 +19,9 @@ parser = argparse.ArgumentParser(description="SSDA Classification")
 parser.add_argument(
     "--steps",
     type=int,
-    default=50000,
+    default=2000,
     metavar="N",
-    help="maximum number of iterations " "to train (default: 50000)",
+    help="maximum number of iterations " "to train (default: 2000)",
 )
 parser.add_argument(
     "--method",
@@ -158,7 +158,7 @@ else:
     F1 = Predictor(num_class=len(class_list), inc=inc, temp=args.T)
 weights_init(F1)
 lr = args.lr
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 G.to(device)  # Feature extractor
 F1.to(device)  # classifier
 
@@ -219,6 +219,16 @@ def train():
     len_train_target_semi = len(target_loader_unl)
     best_acc = 0
     counter = 0
+
+    info_dict = {
+        "train_loss": [],
+        "train_entropy": [],
+        "val_loss": [],
+        "val_acc": [],
+        "test_loss": [],
+        "test_acc": [],
+    }
+
     for step in range(all_step):
         optimizer_g = inv_lr_scheduler(param_lr_g, optimizer_g, step, init_lr=args.lr)
         optimizer_f = inv_lr_scheduler(param_lr_f, optimizer_f, step, init_lr=args.lr)
@@ -264,16 +274,25 @@ def train():
                 raise ValueError("Method cannot be recognized.")
             log_train = (
                 f"[{current_time}] Source: {args.source} | Target: {args.target} | "
-                f"Epoch: {step} | LR: {lr:.6f} | "
-                f"Loss Classification: {loss.data:.6f} | Loss T: {-loss_t.data:.6f} | "
+                f"Epoch: {step} | Learning Rate: {lr:.6f} | "
+                f"Classification Loss: {loss.data.item():.6f} | "
+                f"Entropy: {-loss_t.data.item():.6f} | "
                 f"Method: {args.method}\n"
             )
+
+            info_dict["train_loss"].append(loss.data.item())
+            info_dict["train_entropy"].append(-loss_t.data.item())
+
         else:
             log_train = (
                 f"[{current_time}] Source: {args.source} | Target: {args.target} | "
-                f"Epoch: {step} | LR: {lr:.6f} | "
-                f"Loss Classification: {loss.data:.6f} | Method: {args.method}\n"
+                f"Epoch: {step} | Learning Rate: {lr:.6f} | "
+                f"Classification Loss: {loss.data.item():.6f} | "
+                f"Method: {args.method}\n"
             )
+
+            info_dict["train_g_loss"].append(loss.data.item())
+
         G.zero_grad()
         F1.zero_grad()
         zero_grad_all()
@@ -281,7 +300,13 @@ def train():
             print(log_train)
         if step % args.save_interval == 0 and step > 0:
             loss_test, acc_test = test(target_loader_test)
-            loss_val, acc_val = test(target_loader_val)
+            loss_val, acc_val = test(target_loader_val, is_val=True)
+
+            info_dict["test_loss"].append(loss_test)
+            info_dict["test_acc"].append(acc_test)
+            info_dict["val_loss"].append(loss_val)
+            info_dict["val_acc"].append(acc_val)
+
             G.train()
             F1.train()
             if acc_val >= best_acc:
@@ -327,10 +352,10 @@ def train():
                 )
 
 
-def test(loader):
+def test(loader, is_val=False):
     G.eval()
     F1.eval()
-    test_loss = 0
+    total_loss = 0
     correct = 0
     size = 0
     num_class = len(class_list)
@@ -349,12 +374,14 @@ def test(loader):
             for t, p in zip(gt_labels_t.view(-1), pred1.view(-1)):
                 confusion_matrix[t.long(), p.long()] += 1
             correct += pred1.eq(gt_labels_t.data).cpu().sum()
-            test_loss += criterion(output1, gt_labels_t) / len(loader)
+            total_loss += criterion(output1, gt_labels_t) / len(loader)
+
+    set_type = "Validation" if is_val else "Test"
     print(
-        f"Test set: Average loss: {test_loss:.4f}, "
-        f"Accuracy: {correct}/{size} F1 ({100.0 * correct / size:.0f}%)\n"
+        f"{set_type} set: Average loss: {total_loss:.4f}, "
+        f"Accuracy: {correct}/{size} ({100.0 * correct / size:.0f}%)\n"
     )
-    return test_loss.data, 100.0 * float(correct) / size
+    return total_loss.data, 100.0 * float(correct) / size
 
 
 if __name__ == "__main__":
