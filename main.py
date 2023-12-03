@@ -352,40 +352,12 @@ def train():
                     ),
                 )
 
-    # Function to fill in missing values in val and test metrics
-    def fill_metrics(metrics, interval, total_steps):
-        filled_metrics = []
-        for i in range(total_steps):
-            index = i // interval
-            filled_metrics.append(metrics[min(index, len(metrics) - 1)])
-        return filled_metrics
-
-    # Fill in missing values for val_loss and test_loss
-    total_steps = len(info_dict["train_loss"])
-    val_loss_filled = fill_metrics(
-        info_dict["val_loss"], args.save_interval, total_steps
-    )
-    test_loss_filled = fill_metrics(
-        info_dict["test_loss"], args.save_interval, total_steps
-    )
-
-    # Convert tensors in the lists to CPU and then to NumPy arrays
-    val_loss_np = [
-        x.cpu().numpy() if isinstance(x, torch.Tensor) else x for x in val_loss_filled
-    ]
-    test_loss_np = [
-        x.cpu().numpy() if isinstance(x, torch.Tensor) else x for x in test_loss_filled
-    ]
-
-    # Plot for train_loss vs validation loss vs test loss
+    # Plot for train_loss
     plt.figure(figsize=(10, 6))
-    plt.plot(info_dict["train_loss"], label="Train Loss")
-    plt.plot(val_loss_np, label="Validation Loss")
-    plt.plot(test_loss_np, label="Test Loss")
+    plt.plot(info_dict["train_loss"])
     plt.xlabel("Steps")
     plt.ylabel("Loss")
-    plt.title("Train vs Validation vs Test Loss")
-    plt.legend()
+    plt.title("Train Loss")
     plt.show()
 
     # Plot for train_entropy
@@ -394,6 +366,16 @@ def train():
     plt.xlabel("Steps")
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
+    plt.show()
+
+    # Plot for validation loss vs test loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(info_dict["val_loss"], label="Validation Loss")
+    plt.plot(info_dict["test_loss"], label="Test Loss")
+    plt.xlabel("Steps")
+    plt.ylabel("Loss")
+    plt.title("Train vs Validation vs Test Loss")
+    plt.legend()
     plt.show()
 
     # Plot for validation accuracy vs test accuracy
