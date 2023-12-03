@@ -357,4 +357,5 @@ def test(loader):
     return test_loss.data, 100.0 * float(correct) / size
 
 
-train()
+if __name__ == "__main__":
+    train()
