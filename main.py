@@ -358,7 +358,8 @@ def train():
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Train Loss")
-    plt.show()
+    plt.savefig("train_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
 
     # Plot for train_entropy
     plt.figure(figsize=(10, 6))
@@ -366,7 +367,8 @@ def train():
     plt.xlabel("Steps")
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
-    plt.show()
+    plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
+    plt.close()
 
     # Plot for validation loss vs test loss
     plt.figure(figsize=(10, 6))
@@ -374,9 +376,10 @@ def train():
     plt.plot(info_dict["test_loss"], label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
-    plt.title("Train vs Validation vs Test Loss")
+    plt.title("Validation vs Test Loss")
     plt.legend()
-    plt.show()
+    plt.savefig("val_test_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
 
     # Plot for validation accuracy vs test accuracy
     plt.figure(figsize=(10, 6))
@@ -386,7 +389,8 @@ def train():
     plt.ylabel("Accuracy (%)")
     plt.title("Validation vs Test Accuracy")
     plt.legend()
-    plt.show()
+    plt.savefig("val_test_accuracy_plot.png")  # Save the plot as a PNG file
+    plt.close()
 
 
 def test(loader, is_val=False):
