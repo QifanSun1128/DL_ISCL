@@ -102,8 +102,10 @@ else:
                    temp=args.T)
 weights_init(F1)
 lr = args.lr
-G.cuda()
-F1.cuda()
+device = torch.device('cuda:0')
+G.to(device) #Feature extractor
+F1.to(device) #classifier
+
 
 im_data_s = torch.FloatTensor(1)
 im_data_t = torch.FloatTensor(1)
@@ -113,13 +115,13 @@ gt_labels_t = torch.LongTensor(1)
 sample_labels_t = torch.LongTensor(1)
 sample_labels_s = torch.LongTensor(1)
 
-im_data_s = im_data_s.cuda()
-im_data_t = im_data_t.cuda()
-im_data_tu = im_data_tu.cuda()
-gt_labels_s = gt_labels_s.cuda()
-gt_labels_t = gt_labels_t.cuda()
-sample_labels_t = sample_labels_t.cuda()
-sample_labels_s = sample_labels_s.cuda()
+im_data_s = im_data_s.to(device)
+im_data_t = im_data_t.to(device)
+im_data_tu = im_data_tu.to(device)
+gt_labels_s = gt_labels_s.to(device)
+gt_labels_t = gt_labels_t.to(device)
+sample_labels_t = sample_labels_t.to(device)
+sample_labels_s = sample_labels_s.to(device)
 
 im_data_s = Variable(im_data_s)
 im_data_t = Variable(im_data_t)
@@ -175,11 +177,11 @@ def train():
         data_t = next(data_iter_t)
         data_t_unl = next(data_iter_t_unl)
         data_s = next(data_iter_s)
-        im_data_s.data.resize_(data_s[0].size()).copy_(data_s[0])
-        gt_labels_s.data.resize_(data_s[1].size()).copy_(data_s[1])
-        im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
-        gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
-        im_data_tu.data.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
+        im_data_s.resize_(data_s[0].size()).copy_(data_s[0]) #label data source
+        gt_labels_s.resize_(data_s[1].size()).copy_(data_s[1]) #ground truth label
+        im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
+        gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
+        im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
@@ -191,14 +193,14 @@ def train():
         optimizer_f.step()
         zero_grad_all()
         if not args.method == 'S+T':
-            output = G(im_data_tu)
+            output = G(im_data_tu) #im_data_tu is unlabled data in target domain
             if args.method == 'ENT':
                 loss_t = entropy(F1, output, args.lamda)
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
             elif args.method == 'MME':
-                loss_t = adentropy(F1, output, args.lamda)
+                loss_t = adentropy(F1, output, args.lamda) #adversatrial entropy
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
