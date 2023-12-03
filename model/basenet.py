@@ -121,5 +121,5 @@ class Discriminator(nn.Module):
             x = grad_reverse(x, eta)
         x = F.relu(self.fc1_1(x))
         x = F.relu(self.fc2_1(x))
-        x_out = F.sigmoid(self.fc3_1(x))
+        x_out = torch.sigmoid(self.fc3_1(x))
         return x_out
