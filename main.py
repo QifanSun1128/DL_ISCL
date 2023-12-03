@@ -124,7 +124,11 @@ record_file = os.path.join(
     % (args.method, args.net, args.source, args.target, args.num),
 )
 
-torch.cuda.manual_seed(args.seed)
+if use_gpu:
+    torch.cuda.manual_seed(args.seed)
+else:
+    torch.manual_seed(args.seed)
+
 if args.net == "resnet34":
     G = resnet34()
     inc = 512
@@ -204,7 +208,7 @@ def train():
     param_lr_f = []
     for param_group in optimizer_f.param_groups:
         param_lr_f.append(param_group["lr"])
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss().to(device)
     all_step = args.steps
     data_iter_s = iter(source_loader)
     data_iter_t = iter(target_loader)
@@ -333,7 +337,7 @@ def test(loader):
     size = 0
     num_class = len(class_list)
     output_all = np.zeros((0, num_class))
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss().to(device)
     confusion_matrix = torch.zeros(num_class, num_class)
     with torch.no_grad():
         for batch_idx, data_t in enumerate(loader):
