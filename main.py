@@ -294,7 +294,7 @@ def train():
                 if counter > args.patience:
                     break
             print(f"Best Acc Test: {best_acc_test:.6f} | Best Acc Val: {acc_val:.6f}")
-            print(f"Record: {record_file}")
+            print(f"Record: {record_file}\n")
 
             with open(record_file, "a") as f:
                 f.write(
@@ -304,7 +304,7 @@ def train():
             G.train()
             F1.train()
             if args.save_check:
-                print("Model has been saved.")
+                print("Model has been saved.\n")
                 torch.save(
                     G.state_dict(),
                     os.path.join(
@@ -351,7 +351,7 @@ def test(loader):
             correct += pred1.eq(gt_labels_t.data).cpu().sum()
             test_loss += criterion(output1, gt_labels_t) / len(loader)
     print(
-        f"\nTest set: Average loss: {test_loss:.4f}, "
+        f"Test set: Average loss: {test_loss:.4f}, "
         f"Accuracy: {correct}/{size} F1 ({100.0 * correct / size:.0f}%)\n"
     )
     return test_loss.data, 100.0 * float(correct) / size
