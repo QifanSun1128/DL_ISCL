@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 import os
-import datetime
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,6 +12,7 @@ from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
 from utils.loss import entropy, adentropy
+from datetime import datetime
 
 # Training settings
 parser = argparse.ArgumentParser(description="SSDA Classification")
