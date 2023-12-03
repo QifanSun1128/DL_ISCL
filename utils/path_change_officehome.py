@@ -1,5 +1,6 @@
 import subprocess
 import os
+
 p_path = "/home/grad3/keisaito/project/da/semisupervised/data/txt/office_home"
 txts = os.listdir(p_path)
 for txt in txts:
@@ -12,5 +13,3 @@ for txt in txts:
         d_path = line.split(" ")[0].split("/")[-3]
         class_n = line.split(" ")[1]
         new_file.write(os.path.join(d_path, dir_path, file_path) + " " + class_n)
-
-

@@ -1,7 +1,7 @@
 import subprocess
 
 
-domains =["amazon", "dslr", "webcam"]
+domains = ["amazon", "dslr", "webcam"]
 p1 = "/research/masaito/office/source_images_%s.txt"
 p2 = "/research/masaito/office/split_iccv/labeled_target_images_%s_3.txt"
 p3 = "/research/masaito/office/split_iccv/unsupervised_target_images_%s_3.txt"

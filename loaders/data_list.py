@@ -5,19 +5,19 @@ from PIL import Image
 
 
 def pil_loader(path):
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         img = Image.open(f)
-        return img.convert('RGB')
+        return img.convert("RGB")
 
 
 def make_dataset_fromlist(image_list):
     with open(image_list) as f:
-        image_index = [x.split(' ')[0] for x in f.readlines()]
+        image_index = [x.split(" ")[0] for x in f.readlines()]
     with open(image_list) as f:
         label_list = []
         selected_list = []
         for ind, x in enumerate(f.readlines()):
-            label = x.split(' ')[1].strip()
+            label = x.split(" ")[1].strip()
             label_list.append(int(label))
             selected_list.append(ind)
         image_index = np.array(image_index)
@@ -30,15 +30,21 @@ def return_classlist(image_list):
     with open(image_list) as f:
         label_list = []
         for ind, x in enumerate(f.readlines()):
-            label = x.split(' ')[0].split('/')[-2]
+            label = x.split(" ")[0].split("/")[-2]
             if label not in label_list:
                 label_list.append(str(label))
     return label_list
 
 
 class Imagelists_VISDA(object):
-    def __init__(self, image_list, root="./data/multi/",
-                 transform=None, target_transform=None, test=False):
+    def __init__(
+        self,
+        image_list,
+        root="./data/multi/",
+        transform=None,
+        target_transform=None,
+        test=False,
+    ):
         imgs, labels = make_dataset_fromlist(image_list)
         self.imgs = imgs
         self.labels = labels

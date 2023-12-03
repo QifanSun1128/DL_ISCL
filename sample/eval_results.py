@@ -34,11 +34,11 @@ def acc_perclass(gt, submit, label2cat_file, output="sample.txt"):
     try:
         assert len(gt_labels) == len(submit_labels)
     except:
-        print('Number of submitted files and GT is different!')
+        print("Number of submitted files and GT is different!")
     try:
         assert check_file_name(file_gt, file_sb)
     except:
-        print('Submitted files do not correpond to GT files!')
+        print("Submitted files do not correpond to GT files!")
     result_np = np.zeros((max(gt_labels) + 1, max(gt_labels) + 1))
     for i, gt in enumerate(gt_labels):
         submit_l = submit_labels[i]

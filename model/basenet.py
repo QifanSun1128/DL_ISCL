@@ -20,7 +20,6 @@ class GradReverse(Function):
 
 
 def grad_reverse(x, lambd=1.0):
-
     model = GradReverse.apply(x, lambd)
     return model
 
@@ -43,12 +42,14 @@ class AlexNetBase(nn.Module):
     def __init__(self, pret=True):
         super(AlexNetBase, self).__init__()
         model_alexnet = models.alexnet(pretrained=pret)
-        self.features = nn.Sequential(*list(model_alexnet.
-                                            features._modules.values())[:])
+        self.features = nn.Sequential(
+            *list(model_alexnet.features._modules.values())[:]
+        )
         self.classifier = nn.Sequential()
         for i in range(6):
-            self.classifier.add_module("classifier" + str(i),
-                                       model_alexnet.classifier[i])
+            self.classifier.add_module(
+                "classifier" + str(i), model_alexnet.classifier[i]
+            )
         self.__in_features = model_alexnet.classifier[6].in_features
 
     def forward(self, x):
@@ -65,10 +66,8 @@ class VGGBase(nn.Module):
     def __init__(self, pret=True, no_pool=False):
         super(VGGBase, self).__init__()
         vgg16 = models.vgg16(pretrained=pret)
-        self.classifier = nn.Sequential(*list(vgg16.classifier.
-                                              _modules.values())[:-1])
-        self.features = nn.Sequential(*list(vgg16.features.
-                                            _modules.values())[:])
+        self.classifier = nn.Sequential(*list(vgg16.classifier._modules.values())[:-1])
+        self.features = nn.Sequential(*list(vgg16.features._modules.values())[:])
         self.s = nn.Parameter(torch.FloatTensor([10]))
 
     def forward(self, x):
