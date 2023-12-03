@@ -118,8 +118,8 @@ def eval(loader, output_file="output.txt"):
     with open(output_file, "w") as f:
         with torch.no_grad():
             for batch_idx, data_t in tqdm(enumerate(loader)):
-                im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
-                gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
+                im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
+                gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
                 paths = data_t[2]
                 feat = G(im_data_t)
                 output1 = F1(feat)
