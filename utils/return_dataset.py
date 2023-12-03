@@ -17,8 +17,8 @@ class ResizeImage():
 
 
 def return_dataset(args):
-    base_path = './data/txt/%s' % args.dataset
-    root = './data/%s/' % args.dataset
+    base_path = '/content/DL_SSDA_MME/data/txt/%s' % args.dataset
+    root = '/content/DL_SSDA_MME/data/%s/' % args.dataset
     image_set_file_s = \
         os.path.join(base_path,
                      'labeled_source_images_' +
@@ -105,8 +105,8 @@ def return_dataset(args):
 
 
 def return_dataset_test(args):
-    base_path = './data/txt/%s' % args.dataset
-    root = './data/%s/' % args.dataset
+    base_path = '/content/DL_SSDA_MME/data/txt/%s' % args.dataset
+    root = '/content/DL_SSDA_MME/data/%s/' % args.dataset
     image_set_file_s = os.path.join(base_path, args.source + '_all' + '.txt')
     image_set_file_test = os.path.join(base_path,
                                        'unlabeled_target_images_' +
