@@ -10,16 +10,23 @@ class GradReverse(Function):
         self.lambd = lambd
 
     @staticmethod
-    def forward(self, x):
+    def forward(ctx, x, lambd):
+        #x = torch.tensor(x)
+        #print(type(x))
+        ctx.lambd = lambd
+        print(ctx.__class__)
         return x.view_as(x)
-    
+
     @staticmethod
-    def backward(self, grad_output):
-        return (grad_output * -self.lambd)
+    def backward(ctx, grad_output):
+        #print(ctx.__class__)
+        return (grad_output * -ctx.lambd), None
 
 
 def grad_reverse(x, lambd=1.0):
-    return GradReverse.apply(lambd)(x)
+
+    model = GradReverse.apply(x, lambd)
+    return model
 
 
 def l2_norm(input):
