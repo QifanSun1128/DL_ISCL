@@ -11,15 +11,11 @@ class GradReverse(Function):
 
     @staticmethod
     def forward(ctx, x, lambd):
-        #x = torch.tensor(x)
-        #print(type(x))
         ctx.lambd = lambd
-        print(ctx.__class__)
         return x.view_as(x)
 
     @staticmethod
     def backward(ctx, grad_output):
-        #print(ctx.__class__)
         return (grad_output * -ctx.lambd), None
 
 
