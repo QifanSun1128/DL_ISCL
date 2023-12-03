@@ -369,11 +369,19 @@ def train():
         info_dict["test_loss"], args.save_interval, total_steps
     )
 
+    # Convert tensors in the lists to CPU and then to NumPy arrays
+    val_loss_np = [
+        x.cpu().numpy() if isinstance(x, torch.Tensor) else x for x in val_loss_filled
+    ]
+    test_loss_np = [
+        x.cpu().numpy() if isinstance(x, torch.Tensor) else x for x in test_loss_filled
+    ]
+
     # Plot for train_loss vs validation loss vs test loss
     plt.figure(figsize=(10, 6))
     plt.plot(info_dict["train_loss"], label="Train Loss")
-    plt.plot(val_loss_filled, label="Validation Loss")
-    plt.plot(test_loss_filled, label="Test Loss")
+    plt.plot(val_loss_np, label="Validation Loss")
+    plt.plot(test_loss_np, label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Train vs Validation vs Test Loss")
