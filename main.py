@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 import os
+import datetime
 import numpy as np
 import torch
 import torch.nn as nn
@@ -246,6 +247,7 @@ def train():
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if not args.method == "S+T":
             output = G(im_data_tu)  # im_data_tu is unlabled data in target domain
             if args.method == "ENT":
@@ -261,24 +263,16 @@ def train():
             else:
                 raise ValueError("Method cannot be recognized.")
             log_train = (
-                "S {} T {} Train Ep: {} lr{} \t "
-                "Loss Classification: {:.6f} Loss T {:.6f} "
-                "Method {}\n".format(
-                    args.source,
-                    args.target,
-                    step,
-                    lr,
-                    loss.data,
-                    -loss_t.data,
-                    args.method,
-                )
+                f"[{current_time}] Source: {args.source} | Target: {args.target} | "
+                f"Epoch: {step} | LR: {lr:.6f} | "
+                f"Loss Classification: {loss.data:.6f} | Loss T: {-loss_t.data:.6f} | "
+                f"Method: {args.method}\n"
             )
         else:
             log_train = (
-                "S {} T {} Train Ep: {} lr{} \t "
-                "Loss Classification: {:.6f} Method {}\n".format(
-                    args.source, args.target, step, lr, loss.data, args.method
-                )
+                f"[{current_time}] Source: {args.source} | Target: {args.target} | "
+                f"Epoch: {step} | LR: {lr:.6f} | "
+                f"Loss Classification: {loss.data:.6f} | Method: {args.method}\n"
             )
         G.zero_grad()
         F1.zero_grad()
