@@ -347,11 +347,22 @@ def train():
             return data.cpu().numpy()
         return np.array(data)
 
+    def scale_epochs(array, epochs_per_point=100):
+        return np.arange(len(array)) * epochs_per_point
+
     # Plot for train vs validation loss
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["train_loss"]), label="Train Loss")
-    plt.plot(to_numpy(info_dict["val_loss"]), label="Validation Loss")
-    plt.xlabel("Steps")
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["train_loss"])),
+        to_numpy(info_dict["train_loss"]),
+        label="Train Loss",
+    )
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["val_loss"])),
+        to_numpy(info_dict["val_loss"]),
+        label="Validation Loss",
+    )
+    plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title("Train and Validation Loss")
     plt.legend()
@@ -360,8 +371,11 @@ def train():
 
     # Plot for train entropy
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["train_entropy"]))
-    plt.xlabel("Steps")
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["train_entropy"])),
+        to_numpy(info_dict["train_entropy"]),
+    )
+    plt.xlabel("Epochs")
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
     plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
@@ -369,8 +383,10 @@ def train():
 
     # Plot for validation accuracy
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["val_acc"]))
-    plt.xlabel("Steps")
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["val_acc"])), to_numpy(info_dict["val_acc"])
+    )
+    plt.xlabel("Epochs")
     plt.ylabel("Accuracy (%)")
     plt.title("Validation Accuracy")
     plt.savefig("val_accuracy_plot.png")  # Save the plot as a PNG file
@@ -378,8 +394,11 @@ def train():
 
     # Plot for test accuracy
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["test_acc"]))
-    plt.xlabel("Steps")
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
+        to_numpy(info_dict["test_acc"]),
+    )
+    plt.xlabel("Epochs")
     plt.ylabel("Accuracy (%)")
     plt.title("Test Accuracy")
     plt.savefig("test_accuracy_plot.png")  # Save the plot as a PNG file
@@ -387,11 +406,14 @@ def train():
 
     # Plot for test loss
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["test_loss"]))
-    plt.xlabel("Steps")
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["test_loss"]), epochs_per_point=500),
+        to_numpy(info_dict["test_loss"]),
+    )
+    plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title("Test Loss")
-    plt.savefig("test_loss_plot.png")  # Save the combined plot as a PNG file
+    plt.savefig("test_loss_plot.png")  # Save the plot as a PNG file
     plt.close()
 
 
