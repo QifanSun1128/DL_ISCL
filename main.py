@@ -164,31 +164,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 G.to(device)  # Feature extractor
 F1.to(device)  # classifier
 
-
-im_data_s = torch.FloatTensor(1)
-im_data_t = torch.FloatTensor(1)
-im_data_tu = torch.FloatTensor(1)
-gt_labels_s = torch.LongTensor(1)
-gt_labels_t = torch.LongTensor(1)
-sample_labels_t = torch.LongTensor(1)
-sample_labels_s = torch.LongTensor(1)
-
-im_data_s = im_data_s.to(device)
-im_data_t = im_data_t.to(device)
-im_data_tu = im_data_tu.to(device)
-gt_labels_s = gt_labels_s.to(device)
-gt_labels_t = gt_labels_t.to(device)
-sample_labels_t = sample_labels_t.to(device)
-sample_labels_s = sample_labels_s.to(device)
-
-im_data_s = Variable(im_data_s)
-im_data_t = Variable(im_data_t)
-im_data_tu = Variable(im_data_tu)
-gt_labels_s = Variable(gt_labels_s)
-gt_labels_t = Variable(gt_labels_t)
-sample_labels_t = Variable(sample_labels_t)
-sample_labels_s = Variable(sample_labels_s)
-
 if os.path.exists(args.checkpath) == False:
     os.mkdir(args.checkpath)
 
@@ -213,12 +188,15 @@ def train():
         param_lr_f.append(param_group["lr"])
     criterion = nn.CrossEntropyLoss().to(device)
     all_step = args.steps
+
     data_iter_s = iter(source_loader)
     data_iter_t = iter(target_loader)
     data_iter_t_unl = iter(target_loader_unl)
+
     len_train_source = len(source_loader)
     len_train_target = len(target_loader)
     len_train_target_semi = len(target_loader_unl)
+
     best_acc = 0
     counter = 0
 
@@ -241,17 +219,21 @@ def train():
             data_iter_t_unl = iter(target_loader_unl)
         if step % len_train_source == 0:
             data_iter_s = iter(source_loader)
+
         data_t = next(data_iter_t)
         data_t_unl = next(data_iter_t_unl)
         data_s = next(data_iter_s)
-        im_data_s.resize_(data_s[0].size()).copy_(data_s[0])  # label data source
-        gt_labels_s.resize_(data_s[1].size()).copy_(data_s[1])  # ground truth label
-        im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-        gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
-        im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
+
+        im_data_s = Variable(data_s[0].to(device))  # label data source
+        gt_labels_s = Variable(data_s[1].to(device))  # ground truth label
+        im_data_t = Variable(data_t[0].to(device))
+        gt_labels_t = Variable(data_t[1].to(device))
+        im_data_tu = Variable(data_t_unl[0].to(device))
         zero_grad_all()
+
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
+
         output = G(data)
         out1 = F1(output)
         loss = criterion(out1, target)
@@ -259,6 +241,7 @@ def train():
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
+
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if not args.method == "S+T":
             output = G(im_data_tu)  # im_data_tu is unlabled data in target domain
@@ -424,8 +407,8 @@ def test(loader, is_val=False):
     confusion_matrix = torch.zeros(num_class, num_class)
     with torch.no_grad():
         for batch_idx, data_t in enumerate(loader):
-            im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-            gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
+            im_data_t = Variable(data_t[0].to(device))
+            gt_labels_t = Variable(data_t[1].to(device))
             feat = G(im_data_t)
             output1 = F1(feat)
             output_all = np.r_[output_all, output1.data.cpu().numpy()]
