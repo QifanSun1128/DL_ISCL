@@ -354,9 +354,6 @@ def train():
                 )
 
     with open("info_dict.json", "w") as f:
-        # Convert tensors to CPU and to list for JSON serialization
-        for key in info_dict:
-            info_dict[key] = info_dict[key].cpu().tolist()
         json.dump(info_dict, f)
 
     # Plot for train_loss
