@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import json
 from torch.autograd import Variable
 from model.resnet import resnet34
 from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
@@ -20,9 +21,9 @@ parser = argparse.ArgumentParser(description="SSDA Classification")
 parser.add_argument(
     "--steps",
     type=int,
-    default=1100,
+    default=10000,
     metavar="N",
-    help="maximum number of iterations " "to train (default: 1100)",
+    help="maximum number of iterations " "to train (default: 10000)",
 )
 parser.add_argument(
     "--method",
@@ -352,9 +353,15 @@ def train():
                     ),
                 )
 
+    with open("info_dict.json", "w") as f:
+        # Convert tensors to CPU and to list for JSON serialization
+        for key in info_dict:
+            info_dict[key] = info_dict[key].cpu().tolist()
+        json.dump(info_dict, f)
+
     # Plot for train_loss
     plt.figure(figsize=(10, 6))
-    plt.plot(info_dict["train_loss"])
+    plt.plot(np.array(info_dict["train_loss"].cpu()))
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Train Loss")
@@ -363,7 +370,7 @@ def train():
 
     # Plot for train_entropy
     plt.figure(figsize=(10, 6))
-    plt.plot(info_dict["train_entropy"])
+    plt.plot(np.array(info_dict["train_entropy"].cpu()))
     plt.xlabel("Steps")
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
@@ -372,8 +379,8 @@ def train():
 
     # Plot for validation loss vs test loss
     plt.figure(figsize=(10, 6))
-    plt.plot(info_dict["val_loss"], label="Validation Loss")
-    plt.plot(info_dict["test_loss"], label="Test Loss")
+    plt.plot(np.array(info_dict["val_loss"].cpu()), label="Validation Loss")
+    plt.plot(np.array(info_dict["test_loss"].cpu()), label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Validation vs Test Loss")
@@ -383,8 +390,8 @@ def train():
 
     # Plot for validation accuracy vs test accuracy
     plt.figure(figsize=(10, 6))
-    plt.plot(info_dict["val_acc"], label="Validation Accuracy")
-    plt.plot(info_dict["test_acc"], label="Test Accuracy")
+    plt.plot(np.array(info_dict["val_acc"].cpu()), label="Validation Accuracy")
+    plt.plot(np.array(info_dict["test_acc"].cpu()), label="Test Accuracy")
     plt.xlabel("Steps")
     plt.ylabel("Accuracy (%)")
     plt.title("Validation vs Test Accuracy")
