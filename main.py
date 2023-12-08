@@ -281,10 +281,6 @@ def train():
                 f"Entropy: {-loss_t.data.item():.6f} | "
                 f"Method: {args.method}\n"
             )
-
-            info_dict["train_loss"].append(loss.data.item())
-            info_dict["train_entropy"].append(-loss_t.data.item())
-
         else:
             log_train = (
                 f"[{current_time}] Source: {args.source} | Target: {args.target} | "
@@ -293,14 +289,18 @@ def train():
                 f"Method: {args.method}\n"
             )
 
-            info_dict["train_g_loss"].append(loss.data.item())
-
         G.zero_grad()
         F1.zero_grad()
         zero_grad_all()
         if step % args.log_interval == 0:
             print(log_train)
-        if step % args.save_interval == 0 and step > 0:
+
+            if not args.method == "S+T":
+                info_dict["train_loss"].append(loss.data.item())
+                info_dict["train_entropy"].append(-loss_t.data.item())
+            else:
+                info_dict["train_g_loss"].append(loss.data.item())
+
             loss_test, acc_test = test(target_loader_test)
             loss_val, acc_val = test(target_loader_val, is_val=True)
 
@@ -311,6 +311,12 @@ def train():
 
             G.train()
             F1.train()
+        if step % args.save_interval == 0 and step > 0:
+            loss_test, acc_test = test(target_loader_test)
+            loss_val, acc_val = test(target_loader_val, is_val=True)
+            G.train()
+            F1.train()
+
             if acc_val >= best_acc:
                 best_acc = acc_val
                 best_acc_test = acc_test
@@ -367,13 +373,16 @@ def train():
             return data.cpu().numpy()
         return np.array(data)
 
-    # Plot for train_loss
+    # Plot for train, validation, and test loss
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["train_loss"]))
+    plt.plot(to_numpy(info_dict["train_loss"]), label="Train Loss")
+    plt.plot(to_numpy(info_dict["val_loss"]), label="Validation Loss")
+    plt.plot(to_numpy(info_dict["test_loss"]), label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
-    plt.title("Train Loss")
-    plt.savefig("train_loss_plot.png")  # Save the plot as a PNG file
+    plt.title("Loss Over Steps")
+    plt.legend()
+    plt.savefig("loss_plot.png")  # Save the combined plot as a PNG file
     plt.close()
 
     # Plot for train_entropy
@@ -383,17 +392,6 @@ def train():
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
     plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for validation loss vs test loss
-    plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["val_loss"]), label="Validation Loss")
-    plt.plot(to_numpy(info_dict["test_loss"]), label="Test Loss")
-    plt.xlabel("Steps")
-    plt.ylabel("Loss")
-    plt.title("Validation vs Test Loss")
-    plt.legend()
-    plt.savefig("val_test_loss_plot.png")  # Save the plot as a PNG file
     plt.close()
 
     # Plot for validation accuracy vs test accuracy
