@@ -299,13 +299,10 @@ def train():
                 info_dict["train_loss"].append(loss.data.item())
                 info_dict["train_entropy"].append(-loss_t.data.item())
             else:
-                info_dict["train_g_loss"].append(loss.data.item())
+                info_dict["train_loss"].append(loss.data.item())
 
-            loss_test, acc_test = test(target_loader_test)
             loss_val, acc_val = test(target_loader_val, is_val=True)
 
-            info_dict["test_loss"].append(loss_test)
-            info_dict["test_acc"].append(acc_test)
             info_dict["val_loss"].append(loss_val)
             info_dict["val_acc"].append(acc_val)
 
@@ -316,6 +313,9 @@ def train():
             loss_val, acc_val = test(target_loader_val, is_val=True)
             G.train()
             F1.train()
+
+            info_dict["test_loss"].append(loss_test)
+            info_dict["test_acc"].append(acc_test)
 
             if acc_val >= best_acc:
                 best_acc = acc_val
@@ -359,33 +359,23 @@ def train():
                     ),
                 )
 
-    # # Convert PyTorch Tensors to lists for JSON serialization
-    # for key in info_dict:
-    #     if isinstance(info_dict[key], torch.Tensor):
-    #         info_dict[key] = info_dict[key].cpu().tolist()
-
-    # # Save info_dict to a JSON file
-    # with open("info_dict.json", "w") as f:
-    #     json.dump(info_dict, f)
-
     def to_numpy(data):
         if isinstance(data, torch.Tensor):
             return data.cpu().numpy()
         return np.array(data)
 
-    # Plot for train, validation, and test loss
+    # Plot for train vs validation loss
     plt.figure(figsize=(10, 6))
     plt.plot(to_numpy(info_dict["train_loss"]), label="Train Loss")
     plt.plot(to_numpy(info_dict["val_loss"]), label="Validation Loss")
-    plt.plot(to_numpy(info_dict["test_loss"]), label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
-    plt.title("Loss Over Steps")
+    plt.title("Train and Validation Loss")
     plt.legend()
-    plt.savefig("loss_plot.png")  # Save the combined plot as a PNG file
+    plt.savefig("train_val_loss_plot.png")  # Save the combined plot as a PNG file
     plt.close()
 
-    # Plot for train_entropy
+    # Plot for train entropy
     plt.figure(figsize=(10, 6))
     plt.plot(to_numpy(info_dict["train_entropy"]))
     plt.xlabel("Steps")
@@ -394,15 +384,31 @@ def train():
     plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
     plt.close()
 
-    # Plot for validation accuracy vs test accuracy
+    # Plot for validation accuracy
     plt.figure(figsize=(10, 6))
-    plt.plot(to_numpy(info_dict["val_acc"]), label="Validation Accuracy")
-    plt.plot(to_numpy(info_dict["test_acc"]), label="Test Accuracy")
+    plt.plot(to_numpy(info_dict["val_acc"]))
     plt.xlabel("Steps")
     plt.ylabel("Accuracy (%)")
-    plt.title("Validation vs Test Accuracy")
-    plt.legend()
-    plt.savefig("val_test_accuracy_plot.png")  # Save the plot as a PNG file
+    plt.title("Validation Accuracy")
+    plt.savefig("val_accuracy_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for test accuracy
+    plt.figure(figsize=(10, 6))
+    plt.plot(to_numpy(info_dict["test_acc"]))
+    plt.xlabel("Steps")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Test Accuracy")
+    plt.savefig("test_accuracy_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for test loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(to_numpy(info_dict["test_loss"]))
+    plt.xlabel("Steps")
+    plt.ylabel("Loss")
+    plt.title("Test Loss")
+    plt.savefig("test_loss_plot.png")  # Save the combined plot as a PNG file
     plt.close()
 
 
