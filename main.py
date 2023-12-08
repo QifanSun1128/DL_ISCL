@@ -353,18 +353,23 @@ def train():
                     ),
                 )
 
-    # Convert PyTorch Tensors to lists for JSON serialization
-    for key in info_dict:
-        if isinstance(info_dict[key], torch.Tensor):
-            info_dict[key] = info_dict[key].cpu().tolist()
+    # # Convert PyTorch Tensors to lists for JSON serialization
+    # for key in info_dict:
+    #     if isinstance(info_dict[key], torch.Tensor):
+    #         info_dict[key] = info_dict[key].cpu().tolist()
 
-    # Save info_dict to a JSON file
-    with open("info_dict.json", "w") as f:
-        json.dump(info_dict, f)
+    # # Save info_dict to a JSON file
+    # with open("info_dict.json", "w") as f:
+    #     json.dump(info_dict, f)
+
+    def to_numpy(data):
+        if isinstance(data, torch.Tensor):
+            return data.cpu().numpy()
+        return np.array(data)
 
     # Plot for train_loss
     plt.figure(figsize=(10, 6))
-    plt.plot(np.array(info_dict["train_loss"].cpu()))
+    plt.plot(to_numpy(info_dict["train_loss"]))
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Train Loss")
@@ -373,7 +378,7 @@ def train():
 
     # Plot for train_entropy
     plt.figure(figsize=(10, 6))
-    plt.plot(np.array(info_dict["train_entropy"].cpu()))
+    plt.plot(to_numpy(info_dict["train_entropy"]))
     plt.xlabel("Steps")
     plt.ylabel("Entropy")
     plt.title("Train Entropy")
@@ -382,8 +387,8 @@ def train():
 
     # Plot for validation loss vs test loss
     plt.figure(figsize=(10, 6))
-    plt.plot(np.array(info_dict["val_loss"].cpu()), label="Validation Loss")
-    plt.plot(np.array(info_dict["test_loss"].cpu()), label="Test Loss")
+    plt.plot(to_numpy(info_dict["val_loss"]), label="Validation Loss")
+    plt.plot(to_numpy(info_dict["test_loss"]), label="Test Loss")
     plt.xlabel("Steps")
     plt.ylabel("Loss")
     plt.title("Validation vs Test Loss")
@@ -393,8 +398,8 @@ def train():
 
     # Plot for validation accuracy vs test accuracy
     plt.figure(figsize=(10, 6))
-    plt.plot(np.array(info_dict["val_acc"].cpu()), label="Validation Accuracy")
-    plt.plot(np.array(info_dict["test_acc"].cpu()), label="Test Accuracy")
+    plt.plot(to_numpy(info_dict["val_acc"]), label="Validation Accuracy")
+    plt.plot(to_numpy(info_dict["test_acc"]), label="Test Accuracy")
     plt.xlabel("Steps")
     plt.ylabel("Accuracy (%)")
     plt.title("Validation vs Test Accuracy")
@@ -432,7 +437,7 @@ def test(loader, is_val=False):
         f"{set_type} set: Average loss: {total_loss:.4f}, "
         f"Accuracy: {correct}/{size} ({100.0 * correct / size:.0f}%)\n"
     )
-    return total_loss.data, 100.0 * float(correct) / size
+    return total_loss.data.item(), 100.0 * float(correct) / size
 
 
 if __name__ == "__main__":
