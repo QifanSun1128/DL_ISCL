@@ -353,6 +353,12 @@ def train():
                     ),
                 )
 
+    # Convert PyTorch Tensors to lists for JSON serialization
+    for key in info_dict:
+        if isinstance(info_dict[key], torch.Tensor):
+            info_dict[key] = info_dict[key].cpu().tolist()
+
+    # Save info_dict to a JSON file
     with open("info_dict.json", "w") as f:
         json.dump(info_dict, f)
 
