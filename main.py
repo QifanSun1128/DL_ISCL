@@ -284,11 +284,6 @@ def train():
             else:
                 info_dict["train_loss"].append(loss.data.item())
 
-            loss_val, acc_val = test(target_loader_val, is_val=True)
-
-            info_dict["val_loss"].append(loss_val)
-            info_dict["val_acc"].append(acc_val)
-
             G.train()
             F1.train()
         if step % args.save_interval == 0 and step > 0:
@@ -297,6 +292,8 @@ def train():
             G.train()
             F1.train()
 
+            info_dict["val_loss"].append(loss_val)
+            info_dict["val_acc"].append(acc_val)
             info_dict["test_loss"].append(loss_test)
             info_dict["test_acc"].append(acc_test)
 
@@ -350,23 +347,16 @@ def train():
     def scale_epochs(array, epochs_per_point=100):
         return np.arange(len(array)) * epochs_per_point
 
-    # Plot for train vs validation loss
+    # Plot for train loss
     plt.figure(figsize=(10, 6))
     plt.plot(
         scale_epochs(to_numpy(info_dict["train_loss"])),
         to_numpy(info_dict["train_loss"]),
-        label="Train Loss",
-    )
-    plt.plot(
-        scale_epochs(to_numpy(info_dict["val_loss"])),
-        to_numpy(info_dict["val_loss"]),
-        label="Validation Loss",
     )
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Train and Validation Loss")
-    plt.legend()
-    plt.savefig("train_val_loss_plot.png")  # Save the combined plot as a PNG file
+    plt.title("Train Loss")
+    plt.savefig("train_loss_plot.png")  # Save the plot as a PNG file
     plt.close()
 
     # Plot for train entropy
@@ -381,39 +371,39 @@ def train():
     plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
     plt.close()
 
-    # Plot for validation accuracy
+    # Plot for validation loss vs test loss
     plt.figure(figsize=(10, 6))
     plt.plot(
-        scale_epochs(to_numpy(info_dict["val_acc"])), to_numpy(info_dict["val_acc"])
+        scale_epochs(to_numpy(info_dict["val_loss"]), epochs_per_point=500),
+        to_numpy(info_dict["val_loss"]),
+        label="Validation Loss",
     )
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy (%)")
-    plt.title("Validation Accuracy")
-    plt.savefig("val_accuracy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for test accuracy
-    plt.figure(figsize=(10, 6))
-    plt.plot(
-        scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
-        to_numpy(info_dict["test_acc"]),
-    )
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy (%)")
-    plt.title("Test Accuracy")
-    plt.savefig("test_accuracy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for test loss
-    plt.figure(figsize=(10, 6))
     plt.plot(
         scale_epochs(to_numpy(info_dict["test_loss"]), epochs_per_point=500),
         to_numpy(info_dict["test_loss"]),
     )
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Test Loss")
-    plt.savefig("test_loss_plot.png")  # Save the plot as a PNG file
+    plt.title("Validation vs Test Loss")
+    plt.legend()
+    plt.savefig("val_test_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for validation accuracy vs test accuracy
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["val_acc"]), epochs_per_point=500),
+        to_numpy(info_dict["val_acc"]),
+    )
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
+        to_numpy(info_dict["test_acc"]),
+    )
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Validation vs Test Accuracy")
+    plt.legend()
+    plt.savefig("val_test_accuracy_plot.png")  # Save the plot as a PNG file
     plt.close()
 
 
