@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(description="SSDA Classification")
 parser.add_argument(
     "--steps",
     type=int,
-    default=10000,
+    default=8000,
     metavar="N",
-    help="maximum number of iterations " "to train (default: 10000)",
+    help="maximum number of iterations " "to train (default: 8000)",
 )
 parser.add_argument(
     "--method",
@@ -380,10 +380,11 @@ def train():
     plt.plot(
         scale_epochs(to_numpy(info_dict["test_loss"]), epochs_per_point=500),
         to_numpy(info_dict["test_loss"]),
+        label="Test Loss",
     )
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Validation vs Test Loss")
+    plt.title("Validation and Test Loss")
     plt.legend()
     plt.savefig("val_test_loss_plot.png")  # Save the plot as a PNG file
     plt.close()
@@ -393,14 +394,16 @@ def train():
     plt.plot(
         scale_epochs(to_numpy(info_dict["val_acc"]), epochs_per_point=500),
         to_numpy(info_dict["val_acc"]),
+        label="Validation Accuracy",
     )
     plt.plot(
         scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
         to_numpy(info_dict["test_acc"]),
+        label="Test Accuracy",
     )
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy (%)")
-    plt.title("Validation vs Test Accuracy")
+    plt.title("Validation and Test Accuracy")
     plt.legend()
     plt.savefig("val_test_accuracy_plot.png")  # Save the plot as a PNG file
     plt.close()
