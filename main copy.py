@@ -168,6 +168,14 @@ if os.path.exists(args.checkpath) == False:
     os.mkdir(args.checkpath)
     
 def create_label_groups(output_logits, have_label):
+    """
+    Args:
+        output_logits (list): logits which are the softmax output from F(G(x))
+        have_label (boolean): distinguish between source and unlabeled target
+
+    Returns:
+        dictionary: dictionary: key-(pseudo)label, value-list of logits
+    """
     if not have_label: # create pseudo-label for non-labeled data
         _, labels = torch.max(output_logits, dim=-1)
     label_groupings = {} # dictionary: key-(pseudo)label, value-list of logits
@@ -196,7 +204,9 @@ def train():
     for param_group in optimizer_f.param_groups:
         param_lr_f.append(param_group["lr"])
     criterion = nn.CrossEntropyLoss().to(device)
-    criterion_con = ConLoss().to(device)
+    #######
+    criterion_con = ConLoss().to(device) ### self created contrastive loss, defined in loss.py
+    #######
     all_step = args.steps
 
     data_iter_s = iter(source_loader)
@@ -241,9 +251,7 @@ def train():
         im_data_tu = Variable(data_t_unl[0].to(device))
         zero_grad_all()
         
-
         
-
         # labeld data: L_CE
         data_label = torch.cat((im_data_s, im_data_t), 0)
         target_label = torch.cat((gt_labels_s, gt_labels_t), 0)
@@ -253,16 +261,17 @@ def train():
         
         loss_ce = criterion(out_label, target_label)
         
-        # unlabeled data: Contrastive
+        # unlabeled data: Contrastive Loss
         output2 = G(im_data_tu)
         feat_target_unlabeled = torch.softmax(F1(output2), dim=-1) # logits
         group_target_unlabeled = create_label_groups(output_logits=feat_target_unlabeled, have_label=False)
         
-        ns = im_data_s.size(0)
+        ns = im_data_s.size(0) #number of source image
         feat_source = torch.softmax(out_label[:ns],dim=-1) #feature from source
         group_source = create_label_groups(output_logits=feat_source, have_label=True)
         
-        loss_con = criterion_con(group_source, group_target_unlabeled)
+        #calculate contrastive loss between source samples and unlabeled samples
+        loss_con = criterion_con(group_source, group_target_unlabeled) 
         
         
 ################################    
