@@ -179,8 +179,10 @@ def create_label_groups(output_logits, have_label):
     labels = torch.empty(output_logits.shape[0], dtype = torch.long)
     if not have_label:  # create pseudo-label for non-labeled data
         _, labels = torch.max(output_logits, dim=-1)
+    print(labels)
     label_groupings = {}  # dictionary: key-(pseudo)label, value-list of logits
     for label, logit in zip(labels, output_logits):
+        print(label.item())
         if label.item() not in label_groupings:
             label_groupings[label.item()] = []
         label_groupings[label.item()].append(logit)
@@ -274,7 +276,6 @@ def train():
         ns = im_data_s.size(0)  # number of source image
         feat_source = torch.softmax(out_label[:ns], dim=-1)  # feature from source
         group_source = create_label_groups(output_logits=feat_source, have_label=True)
-
         # calculate contrastive loss between source samples and unlabeled samples
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
