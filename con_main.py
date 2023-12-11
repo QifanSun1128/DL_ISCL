@@ -215,7 +215,8 @@ def train():
     counter = 0
 
     info_dict = {
-        "train_loss": [],
+        "train_cla_loss": [],
+        "train_con_loss": [],
         "train_entropy": [],
         "val_loss": [],
         "val_acc": [],
