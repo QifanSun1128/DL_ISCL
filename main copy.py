@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import json
 from torch.autograd import Variable
 from model.resnet import resnet34
 from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
@@ -21,9 +20,9 @@ parser = argparse.ArgumentParser(description="SSDA Classification")
 parser.add_argument(
     "--steps",
     type=int,
-    default=10000,
+    default=8000,
     metavar="N",
-    help="maximum number of iterations " "to train (default: 10000)",
+    help="maximum number of iterations " "to train (default: 8000)",
 )
 parser.add_argument(
     "--method",
@@ -166,7 +165,8 @@ F1.to(device)  # classifier
 
 if os.path.exists(args.checkpath) == False:
     os.mkdir(args.checkpath)
-    
+
+
 def create_label_groups(output_logits, have_label):
     """
     Args:
@@ -176,14 +176,15 @@ def create_label_groups(output_logits, have_label):
     Returns:
         dictionary: dictionary: key-(pseudo)label, value-list of logits
     """
-    if not have_label: # create pseudo-label for non-labeled data
+    if not have_label:  # create pseudo-label for non-labeled data
         _, labels = torch.max(output_logits, dim=-1)
-    label_groupings = {} # dictionary: key-(pseudo)label, value-list of logits
+    label_groupings = {}  # dictionary: key-(pseudo)label, value-list of logits
     for label, logit in zip(labels, output_logits):
         if label.item() not in label_groupings:
             label_groupings[label.item()] = []
         label_groupings[label.item()].append(logit)
     return label_groupings
+
 
 def train():
     G.train()
@@ -205,7 +206,9 @@ def train():
         param_lr_f.append(param_group["lr"])
     criterion = nn.CrossEntropyLoss().to(device)
     #######
-    criterion_con = ConLoss().to(device) ### self created contrastive loss, defined in loss.py
+    criterion_con = ConLoss().to(
+        device
+    )  ### self created contrastive loss, defined in loss.py
     #######
     all_step = args.steps
 
@@ -250,38 +253,38 @@ def train():
         gt_labels_t = Variable(data_t[1].to(device))
         im_data_tu = Variable(data_t_unl[0].to(device))
         zero_grad_all()
-        
-        
+
         # labeld data: L_CE
         data_label = torch.cat((im_data_s, im_data_t), 0)
         target_label = torch.cat((gt_labels_s, gt_labels_t), 0)
 
-        output= G(data_label)
+        output = G(data_label)
         out_label = F1(output)
-        
+
         loss_ce = criterion(out_label, target_label)
-        
+
         # unlabeled data: Contrastive Loss
         output2 = G(im_data_tu)
-        feat_target_unlabeled = torch.softmax(F1(output2), dim=-1) # logits
-        group_target_unlabeled = create_label_groups(output_logits=feat_target_unlabeled, have_label=False)
-        
-        ns = im_data_s.size(0) #number of source image
-        feat_source = torch.softmax(out_label[:ns],dim=-1) #feature from source
+        feat_target_unlabeled = torch.softmax(F1(output2), dim=-1)  # logits
+        group_target_unlabeled = create_label_groups(
+            output_logits=feat_target_unlabeled, have_label=False
+        )
+
+        ns = im_data_s.size(0)  # number of source image
+        feat_source = torch.softmax(out_label[:ns], dim=-1)  # feature from source
         group_source = create_label_groups(output_logits=feat_source, have_label=True)
-        
-        #calculate contrastive loss between source samples and unlabeled samples
-        loss_con = criterion_con(group_source, group_target_unlabeled) 
-        
-        
-################################    
+
+        # calculate contrastive loss between source samples and unlabeled samples
+        loss_con = criterion_con(group_source, group_target_unlabeled)
+
+        ################################
         loss_comb = loss_ce + loss_con
-        
+
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
-###############################
+        ###############################
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_train = (
             f"[{current_time}] Source: {args.source} | Target: {args.target} | "
@@ -297,11 +300,6 @@ def train():
 
             info_dict["train_loss"].append(loss_comb.data.item())
 
-            loss_val, acc_val = test(target_loader_val, is_val=True)
-
-            info_dict["val_loss"].append(loss_val)
-            info_dict["val_acc"].append(acc_val)
-
             G.train()
             F1.train()
         if step % args.save_interval == 0 and step > 0:
@@ -309,6 +307,9 @@ def train():
             loss_val, acc_val = test(target_loader_val, is_val=True)
             G.train()
             F1.train()
+
+            info_dict["val_loss"].append(loss_val)
+            info_dict["val_acc"].append(acc_val)
 
             info_dict["test_loss"].append(loss_test)
             info_dict["test_acc"].append(acc_test)
@@ -363,70 +364,54 @@ def train():
     def scale_epochs(array, epochs_per_point=100):
         return np.arange(len(array)) * epochs_per_point
 
-    # Plot for train vs validation loss
+    # Plot for train loss
     plt.figure(figsize=(10, 6))
     plt.plot(
         scale_epochs(to_numpy(info_dict["train_loss"])),
         to_numpy(info_dict["train_loss"]),
-        label="Train Loss",
     )
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Train Loss")
+    plt.savefig("train_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for validation loss vs test loss
+    plt.figure(figsize=(10, 6))
     plt.plot(
-        scale_epochs(to_numpy(info_dict["val_loss"])),
+        scale_epochs(to_numpy(info_dict["val_loss"]), epochs_per_point=500),
         to_numpy(info_dict["val_loss"]),
         label="Validation Loss",
     )
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.title("Train and Validation Loss")
-    plt.legend()
-    plt.savefig("train_val_loss_plot.png")  # Save the combined plot as a PNG file
-    plt.close()
-
-    # Plot for train entropy
-    plt.figure(figsize=(10, 6))
-    plt.plot(
-        scale_epochs(to_numpy(info_dict["train_entropy"])),
-        to_numpy(info_dict["train_entropy"]),
-    )
-    plt.xlabel("Epochs")
-    plt.ylabel("Entropy")
-    plt.title("Train Entropy")
-    plt.savefig("train_entropy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for validation accuracy
-    plt.figure(figsize=(10, 6))
-    plt.plot(
-        scale_epochs(to_numpy(info_dict["val_acc"])), to_numpy(info_dict["val_acc"])
-    )
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy (%)")
-    plt.title("Validation Accuracy")
-    plt.savefig("val_accuracy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for test accuracy
-    plt.figure(figsize=(10, 6))
-    plt.plot(
-        scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
-        to_numpy(info_dict["test_acc"]),
-    )
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy (%)")
-    plt.title("Test Accuracy")
-    plt.savefig("test_accuracy_plot.png")  # Save the plot as a PNG file
-    plt.close()
-
-    # Plot for test loss
-    plt.figure(figsize=(10, 6))
     plt.plot(
         scale_epochs(to_numpy(info_dict["test_loss"]), epochs_per_point=500),
         to_numpy(info_dict["test_loss"]),
+        label="Test Loss",
     )
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Test Loss")
-    plt.savefig("test_loss_plot.png")  # Save the plot as a PNG file
+    plt.title("Validation and Test Loss")
+    plt.legend()
+    plt.savefig("val_test_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for validation accuracy vs test accuracy
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["val_acc"]), epochs_per_point=500),
+        to_numpy(info_dict["val_acc"]),
+        label="Validation Accuracy",
+    )
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["test_acc"]), epochs_per_point=500),
+        to_numpy(info_dict["test_acc"]),
+        label="Test Accuracy",
+    )
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Validation and Test Accuracy")
+    plt.legend()
+    plt.savefig("val_test_accuracy_plot.png")  # Save the plot as a PNG file
     plt.close()
 
 
