@@ -61,9 +61,13 @@ class ConLoss(nn.Module):
         z_a_target =[]
         z_a_source =[] 
         for key in group_source.keys():
+            '''
             z_a_target.append(torch.stack(group_source[key]))
             if key in group_target:
-                z_a_source.append(torch.stack(group_target[key]))            
+                z_a_source.append(torch.stack(group_target[key])) 
+            '''           
+            z_a_source.append(torch.stack(group_source[key]))
+            z_a_target.append(torch.stack(group_target[key])) 
         z_a_target = torch.cat(z_a_target, dim = 0) # dimension: number of unlabeled target sample x number of class
         z_a_source = torch.cat(z_a_source, dim = 0) # dimension: number of unlabeled source sample x number of class
         z_a = torch.cat([z_a_target, z_a_source], dim=0) #combine z_a_target and z_a_source to create a matrix of all samples that has dimension: (T x k)
