@@ -57,7 +57,7 @@ class ConLoss(nn.Module):
         Returns:
             A loss scalar.
         """ 
-        loss = torch.tensor(0.00)
+        loss = torch.tensor(0.00).cuda()
         z_a_target =[]
         z_a_source =[]
         for key in group_source.keys():
@@ -76,7 +76,7 @@ class ConLoss(nn.Module):
                     z_i.cuda()
                     den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
-                    log_prob = - torch.mean(torch.log(num/den))
+                    log_prob = - torch.mean(torch.log(num/den)).cuda()
                     loss += log_prob
 
         return loss
