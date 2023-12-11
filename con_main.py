@@ -282,8 +282,8 @@ def train():
             f"[{current_time}] Source: {args.source} | Target: {args.target} | "
             f"Epoch: {step} | Learning Rate: {lr:.6f} | "
             f"Contrastive Loss: {loss_con.data.item():.6f} | "
-            f"Supervised Loss: {loss_ce.data.item():.6f} | "
-            f"Total Classification Loss: {loss_comb.data.item():.6f} | "
+            f"Classification Loss: {loss_ce.data.item():.6f} | "
+            f"Total Loss: {loss_comb.data.item():.6f} | "
         )
 
         G.zero_grad()
@@ -292,7 +292,8 @@ def train():
         if step % args.log_interval == 0:
             print(log_train)
 
-            info_dict["train_loss"].append(loss_comb.data.item())
+            info_dict["train_cla_loss"].append(loss_ce.data.item())
+            info_dict["train_con_loss"].append(loss_con.data.item())
 
             G.train()
             F1.train()
@@ -357,13 +358,25 @@ def train():
     # Plot for train loss
     plt.figure(figsize=(10, 6))
     plt.plot(
-        scale_epochs(to_numpy(info_dict["train_loss"])),
-        to_numpy(info_dict["train_loss"]),
+        scale_epochs(to_numpy(info_dict["train_cla_loss"])),
+        to_numpy(info_dict["train_cla_loss"]),
     )
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title("Train Loss")
     plt.savefig("train_loss_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+    # Plot for train contrastive loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        scale_epochs(to_numpy(info_dict["train_con_loss"])),
+        to_numpy(info_dict["train_con_loss"]),
+    )
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Train Contrastive Loss")
+    plt.savefig("train_con_loss_plot.png")  # Save the plot as a PNG file
     plt.close()
 
     # Plot for validation loss vs test loss
