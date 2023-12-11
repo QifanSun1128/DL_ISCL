@@ -72,7 +72,7 @@ class ConLoss(nn.Module):
         for key in group_source.keys():
             z_a_source.append(torch.stack(group_source[key]))
         for key in group_target.keys():
-            z_a_source.append(torch.stack(group_source[key]))
+            z_a_target.append(torch.stack(group_target[key]))
 
         z_a_target = torch.cat(z_a_target, dim=0).to(device)
         z_a_source = torch.cat(z_a_source, dim=0).to(device)
