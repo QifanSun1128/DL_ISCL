@@ -73,8 +73,8 @@ class ConLoss(nn.Module):
             Z_j = torch.stack(group_source[k])
             if k in group_target.keys():
                 for z_i in group_target[k]:
-                    den = torch.exp(torch.dot(z_a, z_i) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
-                    num = torch.exp(torch.dot(Z_j, z_i) / self.temperature)
+                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
                     log_prob = - torch.mean(torch.log(num/den))
                     loss += log_prob
 
