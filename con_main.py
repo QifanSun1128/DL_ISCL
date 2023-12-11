@@ -109,13 +109,12 @@ print(
     class_list,
 ) = return_dataset(args)
 use_gpu = torch.cuda.is_available()
-record_dir = "record/%s/%s" % (args.dataset, args.method)
+record_dir = "record/%s" % (args.dataset)
 if not os.path.exists(record_dir):
     os.makedirs(record_dir)
 record_file = os.path.join(
     record_dir,
-    "%s_net_%s_%s_to_%s_num_%s"
-    % (args.method, args.net, args.source, args.target, args.num),
+    "net_%s_%s_to_%s_num_%s" % (args.net, args.source, args.target, args.num),
 )
 
 if use_gpu:
@@ -332,20 +331,16 @@ def train():
                     G.state_dict(),
                     os.path.join(
                         args.checkpath,
-                        "G_iter_model_{}_{}_"
-                        "to_{}_step_{}.pth.tar".format(
-                            args.method, args.source, args.target, step
-                        ),
+                        "G_iter_model_{}_"
+                        "to_{}_step_{}.pth.tar".format(args.source, args.target, step),
                     ),
                 )
                 torch.save(
                     F1.state_dict(),
                     os.path.join(
                         args.checkpath,
-                        "F1_iter_model_{}_{}_"
-                        "to_{}_step_{}.pth.tar".format(
-                            args.method, args.source, args.target, step
-                        ),
+                        "F1_iter_model_{}_"
+                        "to_{}_step_{}.pth.tar".format(args.source, args.target, step),
                     ),
                 )
 
