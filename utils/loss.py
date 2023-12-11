@@ -41,42 +41,53 @@ def adentropy(F1, feat, lamda, eta=1.0):
     loss_adent = lamda * torch.mean(torch.sum(out_t1 * (torch.log(out_t1 + 1e-5)), 1))
     return loss_adent
 
+
 class ConLoss(nn.Module):
-    """Contrastive Learning: """
+    """Contrastive Learning Loss"""
+
     def __init__(self, temperature=0.07, base_temperature=0.07):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.base_temperature = base_temperature
 
     def forward(self, group_source, group_target):
-        """Compute loss for model. 
-        adapted from Supervised Contrastive Learning:
+        """
+        Compute loss for model.
         Args:
-            group_source: source dictionary 
+            group_source: source dictionary
             group_target: target dictionary.
         Returns:
             A loss scalar.
-        """ 
-        loss = torch.tensor(0.00).cuda()
-        z_a_target =[]
-        z_a_source =[]
+        """
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        loss = torch.tensor(0.0, device=device)
+
+        z_a_target = []
+        z_a_source = []
+
+        if not group_source or not group_target:
+            raise ValueError("Source and target groups should not be empty")
+
         for key in group_source.keys():
             if key in group_target:
                 z_a_source.append(torch.stack(group_source[key]))
                 z_a_target.append(torch.stack(group_target[key]))
-            
-        z_a_target = torch.cat(z_a_target, dim = 0) # dimension: number of unlabeled target sample x number of class
-        z_a_source = torch.cat(z_a_source, dim = 0) # dimension: number of unlabeled source sample x number of class
-        z_a = torch.cat([z_a_target, z_a_source], dim=0).cuda() #combine z_a_target and z_a_source to create a matrix of all samples that has dimension: (T x k)
-        #jacky你懂吧 不需要comment了 ^_^
+
+        z_a_target = torch.cat(z_a_target, dim=0).to(device)
+        z_a_source = torch.cat(z_a_source, dim=0).to(device)
+        z_a = torch.cat([z_a_target, z_a_source], dim=0).to(device)
+
         for k in group_source.keys():
-            Z_j = torch.stack(group_source[k]).cuda()
+            Z_j = torch.stack(group_source[k]).to(device)
             if k in group_target.keys():
                 for z_i in group_target[k]:
-                    z_i.cuda()
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    z_i = z_i.to(device)
+                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
+                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
-                    log_prob = - torch.mean(torch.log(num/den)).cuda()
-                    loss += log_prob
+
+                    log_prob = torch.log(num) - torch.log(den)
+                    loss -= torch.mean(log_prob)
 
         return loss
