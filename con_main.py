@@ -167,7 +167,7 @@ if os.path.exists(args.checkpath) == False:
     os.mkdir(args.checkpath)
 
 
-def create_label_groups(output_logits, have_label):
+def create_label_groups(output_logits, labels = None):
     """
     Args:
         output_logits (list): logits which are the softmax output from F(G(x))
@@ -176,8 +176,7 @@ def create_label_groups(output_logits, have_label):
     Returns:
         dictionary: dictionary: key-(pseudo)label, value-list of logits
     """
-    labels = torch.empty(output_logits.shape[0], dtype = torch.long)
-    if not have_label:  # create pseudo-label for non-labeled data
+    if labels is not None:  # create pseudo-label for non-labeled data
         _, labels = torch.max(output_logits, dim=-1)
     print(labels)
     label_groupings = {}  # dictionary: key-(pseudo)label, value-list of logits
@@ -269,13 +268,11 @@ def train():
         # unlabeled data: Contrastive Loss
         output2 = G(im_data_tu)
         feat_target_unlabeled = torch.softmax(F1(output2), dim=-1)  # logits
-        group_target_unlabeled = create_label_groups(
-            output_logits=feat_target_unlabeled, have_label=False
-        )
+        group_target_unlabeled = create_label_groups(output_logits=feat_target_unlabeled)
 
         ns = im_data_s.size(0)  # number of source image
         feat_source = torch.softmax(out_label[:ns], dim=-1)  # feature from source
-        group_source = create_label_groups(output_logits=feat_source, have_label=True)
+        group_source = create_label_groups(output_logits=feat_source, labels = gt_labels_s)
         # calculate contrastive loss between source samples and unlabeled samples
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
