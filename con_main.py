@@ -281,7 +281,9 @@ def train():
         log_train = (
             f"[{current_time}] Source: {args.source} | Target: {args.target} | "
             f"Epoch: {step} | Learning Rate: {lr:.6f} | "
-            f"Classification Loss: {loss_comb.data.item():.6f} | "
+            f"Contrastive Loss: {loss_con.data.item():.6f} | "
+            f"Supervised Loss: {loss_ce.data.item():.6f} | "
+            f"Total Classification Loss: {loss_comb.data.item():.6f} | "
         )
 
         G.zero_grad()
