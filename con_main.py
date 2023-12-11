@@ -25,14 +25,6 @@ parser.add_argument(
     help="maximum number of iterations " "to train (default: 8000)",
 )
 parser.add_argument(
-    "--method",
-    type=str,
-    default="MME",
-    choices=["S+T", "ENT", "MME"],
-    help="MME is proposed method, ENT is entropy minimization,"
-    " S+T is training only on labeled examples",
-)
-parser.add_argument(
     "--lr",
     type=float,
     default=0.01,
