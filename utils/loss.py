@@ -60,7 +60,6 @@ class ConLoss(nn.Module):
         loss = torch.tensor(0.00)
         z_a_target =[]
         z_a_source =[]
-        print(group_source)
         for key in group_source.keys():
             if key in group_target:
                 z_a_source.append(torch.stack(group_source[key]))
@@ -72,10 +71,11 @@ class ConLoss(nn.Module):
         #jacky你懂吧 不需要comment了 ^_^
         for k in group_source.keys():
             Z_j = torch.stack(group_source[k])
-            for z_i in group_target[k]:
-                den = torch.exp(torch.dot(z_a, z_i) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
-                num = torch.exp(torch.dot(Z_j, z_i) / self.temperature)
-                log_prob = - torch.mean(torch.log(num/den))
-                loss += log_prob
+            if k in group_target.keys():
+                for z_i in group_target[k]:
+                    den = torch.exp(torch.dot(z_a, z_i) / self.temperature).sum() - torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    num = torch.exp(torch.dot(Z_j, z_i) / self.temperature)
+                    log_prob = - torch.mean(torch.log(num/den))
+                    loss += log_prob
 
         return loss

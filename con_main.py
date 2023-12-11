@@ -178,10 +178,8 @@ def create_label_groups(output_logits, labels = None):
     """
     if labels is None:  # create pseudo-label for non-labeled data
         _, labels = torch.max(output_logits, dim=-1)
-    print(labels)
     label_groupings = {}  # dictionary: key-(pseudo)label, value-list of logits
     for label, logit in zip(labels, output_logits):
-        print(label.item())
         if label.item() not in label_groupings:
             label_groupings[label.item()] = []
         label_groupings[label.item()].append(logit)
