@@ -45,10 +45,10 @@ def adentropy(F1, feat, lamda, eta=1.0):
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=0.07, base_temperature=0.07):
+    def __init__(self, temperature=0.07, margin=0.5):
         super(ConLoss, self).__init__()
         self.temperature = temperature
-        self.base_temperature = base_temperature
+        self.margin = margin
 
     def forward(self, group_source, group_target):
         """
@@ -87,7 +87,7 @@ class ConLoss(nn.Module):
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
-                    log_prob = torch.log(num) - torch.log(den)
-                    loss -= torch.mean(log_prob)
+                    log_prob = F.relu(num - den + self.margin)
+                    total_loss -= torch.mean(log_prob)
 
         return loss / z_a.shape[0]
