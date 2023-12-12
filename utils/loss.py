@@ -78,7 +78,7 @@ class ConLoss(nn.Module):
         z_a_source = torch.cat(z_a_source, dim=0).to(device)
         z_a = torch.cat([z_a_target, z_a_source], dim=0).to(device)
 
-        for k in group_source.keys():
+        for k in group_source.keys():v
             Z_j = torch.stack(group_source[k]).to(device)
             if k in group_target.keys():
                 for z_i in group_target[k]:
