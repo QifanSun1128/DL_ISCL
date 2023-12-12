@@ -160,4 +160,4 @@ class ConLoss(nn.Module):
                     total_loss -= torch.mean(log_prob)
                     reg_loss += torch.norm(z_i)
 
-        return (total_loss) / (2*len(group_source))
+        return (total_loss) / len(group_source)
