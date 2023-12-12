@@ -99,7 +99,7 @@ class ConLoss(nn.Module):
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=0.07, margin=0.5, lambda_reg = 0.1):
+    def __init__(self, temperature=5, margin=0.5, lambda_reg = 0.1):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.margin = margin
@@ -138,7 +138,7 @@ class ConLoss(nn.Module):
             if k in group_target.keys():
                 for z_i in group_target[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
+                    den = torch.exp(torch.matmul(z_a_source, z_i.T) / self.temperature).sum()
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
@@ -150,11 +150,11 @@ class ConLoss(nn.Module):
             if k in group_source.keys():
                 for z_i in group_source[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
+                    den = torch.exp(torch.matmul(z_a_target, z_i.T) / self.temperature).sum()
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
 
-        return (total_loss) / z_a.shape[0]
+        return 0.5*(total_loss) / z_a.shape[0]
