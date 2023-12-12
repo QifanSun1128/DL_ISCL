@@ -272,16 +272,26 @@ def train():
         # calculate contrastive loss between source samples and unlabeled samples
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
-        output = G(im_data_tu)
-        loss_t = adentropy(F1, output, args.lamda)  # adversatrial entropy
         ################################
-        loss_comb = loss_ce + 0.4 * loss_con + loss_t
+        ## CE loss and contrastive loss
+        loss_comb = loss_ce + 1.6 * loss_con
 
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
         ###############################
+
+        ################################
+        ## adversatrial entropy
+        output = G(im_data_tu)
+        loss_t = adentropy(F1, output, args.lamda)
+
+        loss_t.backward()
+        optimizer_f.step()
+        optimizer_g.step()
+        ################################
+
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_train = (
             f"[{current_time}] Source: {args.source} | Target: {args.target} | "
@@ -289,6 +299,7 @@ def train():
             f"Contrastive Loss: {loss_con.data.item():.6f} | "
             f"Classification Loss: {loss_ce.data.item():.6f} | "
             f"Total Loss: {loss_comb.data.item():.6f} | "
+            f"Entropy: {-loss_t.data.item():.6f} | "
         )
 
         G.zero_grad()
