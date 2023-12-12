@@ -99,11 +99,10 @@ class ConLoss(nn.Module):
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=5, margin=0.5, lambda_reg = 0.1):
+    def __init__(self, temperature=0.5, margin=0.5):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.margin = margin
-        self.lambda_reg = lambda_reg
 
     def forward(self, group_source, group_target):
         """
@@ -115,6 +114,8 @@ class ConLoss(nn.Module):
             A loss scalar.
         """
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        weight_s = {key: len(value)/len(group_source) for key, value in group_source.items()}
+        weight_t = {key: len(value)/len(group_target) for key, value in group_target.items()}
 
         total_loss = torch.tensor(0.0, device=device)
         
@@ -139,10 +140,11 @@ class ConLoss(nn.Module):
                 for z_i in group_target[k]:
                     z_i = z_i.to(device)
                     den = torch.exp(torch.matmul(z_a_source, z_i.T) / self.temperature).sum()
-                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = torch.log(num) - torch.log(den)
+                    margin_loss = F.relu(log_prob + self.margin)
+                    loss = weight_t[k] * margin_loss
                     total_loss -= torch.mean(log_prob)
 
         for k in group_target.keys():
@@ -151,10 +153,11 @@ class ConLoss(nn.Module):
                 for z_i in group_source[k]:
                     z_i = z_i.to(device)
                     den = torch.exp(torch.matmul(z_a_target, z_i.T) / self.temperature).sum()
-                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = torch.log(num) - torch.log(den)
-                    total_loss -= torch.mean(log_prob)
+                    margin_loss = F.relu(log_prob + self.margin)
+                    loss = weight_s[k] * margin_loss
+                    total_loss -= torch.mean(loss)
 
         return (total_loss) / z_a.shape[0]
