@@ -12,6 +12,7 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
+from utils.loss import adentropy
 from datetime import datetime
 from utils.loss import ConLoss
 
@@ -267,11 +268,14 @@ def train():
         group_source = create_label_groups(
             output_logits=feat_source, labels=gt_labels_s
         )
+
         # calculate contrastive loss between source samples and unlabeled samples
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
+        output = G(im_data_tu)
+        loss_t = adentropy(F1, output, args.lamda)  # adversatrial entropy
         ################################
-        loss_comb = loss_ce + loss_con
+        loss_comb = loss_ce + 0.4 * loss_con + loss_t
 
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
