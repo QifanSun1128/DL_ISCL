@@ -145,7 +145,7 @@ class ConLoss(nn.Module):
                     ).sum()
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
-                    log_prob = F.relu(num - den + self.margin)
+                    log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
 
         for k in group_target.keys():
@@ -158,7 +158,7 @@ class ConLoss(nn.Module):
                     ).sum()
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
-                    log_prob = F.relu(num - den + self.margin)
+                    log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
 
-        return (total_loss) / len(group_source)
+        return (total_loss) / z_a.shape[0]
