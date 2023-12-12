@@ -45,7 +45,7 @@ def adentropy(F1, feat, lamda, eta=1.0):
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=0.07, margin=0.5):
+    def __init__(self, temperature=0.07, margin=0.5, lambda_reg=0.1):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.margin = margin
