@@ -92,5 +92,5 @@ class ConLoss(nn.Module):
                     log_prob = F.relu(num - den + self.margin)
                     total_loss -= torch.mean(log_prob)
                     reg_loss += torch.norm(z_i)
-                    
-        return self.lambda_reg*(total_loss) / len(group_source)
+
+        return (total_loss+reg_loss) / len(group_source)
