@@ -41,6 +41,7 @@ def adentropy(F1, feat, lamda, eta=1.0):
     loss_adent = lamda * torch.mean(torch.sum(out_t1 * (torch.log(out_t1 + 1e-5)), 1))
     return loss_adent
 
+
 '''
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
@@ -96,10 +97,11 @@ class ConLoss(nn.Module):
         return (total_loss+reg_loss) / len(group_source)
 '''
 
+
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=0.07, margin=0.5, lambda_reg = 0.1):
+    def __init__(self, temperature=0.07, margin=0.5, lambda_reg=0.1):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.margin = margin
@@ -117,8 +119,7 @@ class ConLoss(nn.Module):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         total_loss = torch.tensor(0.0, device=device)
-        reg_loss = torch.tensor(0.0, device=device) 
-        
+
         z_a_target = []
         z_a_source = []
 
@@ -139,25 +140,25 @@ class ConLoss(nn.Module):
             if k in group_target.keys():
                 for z_i in group_target[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
-                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    den = torch.exp(
+                        torch.matmul(z_a_source, z_i.T) / self.temperature
+                    ).sum()
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = F.relu(num - den + self.margin)
                     total_loss -= torch.mean(log_prob)
-                    reg_loss += torch.norm(z_i)
 
         for k in group_target.keys():
             Z_j = torch.stack(group_target[k]).to(device)
             if k in group_source.keys():
                 for z_i in group_source[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
-                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    den = torch.exp(
+                        torch.matmul(z_a_target, z_i.T) / self.temperature
+                    ).sum()
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = F.relu(num - den + self.margin)
                     total_loss -= torch.mean(log_prob)
-                    reg_loss += torch.norm(z_i)
 
         return (total_loss) / len(group_source)
