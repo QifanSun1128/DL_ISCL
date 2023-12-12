@@ -274,7 +274,7 @@ def train():
 
         ################################
         ## CE loss and contrastive loss
-        loss_comb = loss_ce + 1.6 * loss_con
+        loss_comb = loss_ce + 0.4 * loss_con
 
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
