@@ -139,7 +139,7 @@ class ConLoss(nn.Module):
             if k in group_target.keys():
                 for z_i in group_target[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a_source, z_i.T) / self.temperature).sum()
+                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
@@ -152,7 +152,7 @@ class ConLoss(nn.Module):
             if k in group_source.keys():
                 for z_i in group_source[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a_target, z_i.T) / self.temperature).sum()
+                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
