@@ -157,4 +157,4 @@ class ConLoss(nn.Module):
                     log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
 
-        return 0.5*(total_loss) / z_a.shape[0]
+        return (total_loss) / z_a.shape[0]
