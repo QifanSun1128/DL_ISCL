@@ -142,8 +142,9 @@ class ConLoss(nn.Module):
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
-                    log_prob = F.relu(num - den)
+                    log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
+                    reg_loss += torch.norm(z_i)
 
         for k in group_target.keys():
             Z_j = torch.stack(group_target[k]).to(device)
@@ -154,7 +155,8 @@ class ConLoss(nn.Module):
                     den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
-                    log_prob = F.relu(num - den)
+                    log_prob = torch.log(num) - torch.log(den)
                     total_loss -= torch.mean(log_prob)
+                    reg_loss += torch.norm(z_i)
 
         return (total_loss) / len(group_source)
