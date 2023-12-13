@@ -12,8 +12,9 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
-from datetime import datetime 
-from utils.loss import ConLoss, adentropy
+from utils.loss import adentropy
+from datetime import datetime
+from utils.loss import ConLoss
 
 # Training settings
 parser = argparse.ArgumentParser(description="SSDA Classification")
@@ -254,7 +255,7 @@ def train():
         out_label = F1(output)
 
         loss_ce = criterion(out_label, target_label)
-        loss_t = adentropy(F1, output, args.lamda)
+
         # unlabeled data: Contrastive Loss
         output2 = G(im_data_tu)
         feat_target_unlabeled = torch.softmax(F1(output2), dim=-1)  # logits
@@ -267,17 +268,23 @@ def train():
         group_source = create_label_groups(
             output_logits=feat_source, labels=gt_labels_s
         )
+
         # calculate contrastive loss between source samples and unlabeled samples
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
+        # calculate adversatrial entropy
+        output = G(im_data_tu)
+        loss_t = adentropy(F1, output, args.lamda)
+
         ################################
-        loss_comb = loss_ce + 0.5 * loss_con + loss_t
+        loss_comb = loss_ce + 0.4 * loss_con + loss_t
 
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
         ###############################
+
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_train = (
             f"[{current_time}] Source: {args.source} | Target: {args.target} | "
@@ -285,6 +292,7 @@ def train():
             f"Contrastive Loss: {loss_con.data.item():.6f} | "
             f"Classification Loss: {loss_ce.data.item():.6f} | "
             f"Total Loss: {loss_comb.data.item():.6f} | "
+            f"Entropy: {-loss_t.data.item():.6f} | "
         )
 
         G.zero_grad()

@@ -99,7 +99,7 @@ class ConLoss(nn.Module):
 class ConLoss(nn.Module):
     """Contrastive Learning Loss"""
 
-    def __init__(self, temperature=0.5, margin=0.5):
+    def __init__(self, temperature=0.05, margin=0.5):
         super(ConLoss, self).__init__()
         self.temperature = temperature
         self.margin = margin
