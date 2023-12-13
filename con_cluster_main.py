@@ -203,6 +203,7 @@ def train():
     #######
     all_step = args.steps
 
+    #initalize Clustering for K-means clusters for target label
     init_centers_from_source_domain = get_centers(F1, source_loader, num_classes=126)
     clustering = Clustering(eps=0.005, max_len=1000, dist_type='cos')
     clustering.set_init_centers(init_centers_from_source_domain)
@@ -229,6 +230,8 @@ def train():
         "test_acc": [],
     }
     
+    nul = 0
+    idx_ul = 0
     for step in range(all_step):
         optimizer_g = inv_lr_scheduler(param_lr_g, optimizer_g, step, init_lr=args.lr)
         optimizer_f = inv_lr_scheduler(param_lr_f, optimizer_f, step, init_lr=args.lr)
@@ -237,6 +240,11 @@ def train():
             data_iter_t = iter(target_loader)
         if step % len_train_target_semi == 0:
             data_iter_t_unl = iter(target_loader_unl)
+            #update clusterings and labels for unlabeled target 
+            nul = 0
+            idx_ul = 0
+            clustering.feature_clustering(net=G, loader=target_loader_unl)
+            pseudo_labels = clustering.samples['label']
         if step % len_train_source == 0:
             data_iter_s = iter(source_loader)
 
@@ -264,10 +272,11 @@ def train():
         output2 = G(im_data_tu)
         feat_target_unlabeled = torch.softmax(F1(output2), dim=-1)  # logits
 
-        clustering.feature_clustering(net=G, loader=target_loader_unl)
-        pseudo_labels = clustering.samples['label']
-
-        group_target_unlabeled = create_label_groups(output_logits=feat_target_unlabeled, labels = pseudo_labels)
+        #get the psuedo labels from clustering result
+        nul = im_data_tu.size(0)
+        labels_ul = pseudo_labels[idx_ul:idx_ul + nul]
+        idx_ul += nul
+        group_target_unlabeled = create_label_groups(output_logits=feat_target_unlabeled, labels = labels_ul)
 
         ns = im_data_s.size(0)  # number of source image
         feat_source = torch.softmax(out_label[:ns], dim=-1)  # feature from source
