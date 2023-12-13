@@ -23,3 +23,29 @@ def save_checkpoint(
     torch.save(state, filepath)
     if is_best:
         shutil.copyfile(filepath, os.path.join(checkpoint, "model_best.pth.tar"))
+
+def get_centers(net, dataloader, num_classes):        
+    centers = 0 
+    refs = torch.LongTensor(range(num_classes)).unsqueeze(1)
+    if torch.cuda.is_available():
+        ref = refs.cuda()
+        
+    for sample in iter(dataloader):
+        data = sample[0]
+        gt = sample[1]
+        if torch.cuda.is_available():
+            data = data.cuda()    
+            gt = gt.cuda()   
+        batch_size = data.size(0)
+
+        output = net.forward(data)
+        feature = output.data 
+        feat_len = feature.size(1)
+    
+        gt = gt.unsqueeze(0).expand(num_classes, -1)
+        mask = (gt == refs).unsqueeze(2).type(torch.cuda.FloatTensor)
+        feature = feature.unsqueeze(0)
+        # update centers
+        centers += torch.sum(feature * mask, dim=1)
+
+    return centers
