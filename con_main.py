@@ -12,8 +12,8 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
-from datetime import datetime
-from utils.loss import ConLoss
+from datetime import datetime 
+from utils.loss import ConLoss, adentropy
 
 # Training settings
 parser = argparse.ArgumentParser(description="SSDA Classification")
@@ -254,7 +254,7 @@ def train():
         out_label = F1(output)
 
         loss_ce = criterion(out_label, target_label)
-
+        loss_t = adentropy(F1, output, args.lamda)
         # unlabeled data: Contrastive Loss
         output2 = G(im_data_tu)
         feat_target_unlabeled = torch.softmax(F1(output2), dim=-1)  # logits
