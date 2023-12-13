@@ -61,7 +61,7 @@ class ConLoss(nn.Module):
         """
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        loss = torch.tensor(0.0, device=device)
+        total_loss = torch.tensor(0.0, device=device)
 
         z_a_target = []
         z_a_source = []
@@ -83,11 +83,25 @@ class ConLoss(nn.Module):
             if k in group_target.keys():
                 for z_i in group_target[k]:
                     z_i = z_i.to(device)
-                    den = torch.exp(torch.matmul(z_a, z_i.T) / self.temperature).sum()
-                    den -= torch.exp(torch.dot(z_i, z_i) / self.temperature)
+                    den = torch.exp(
+                        torch.matmul(z_a_source, z_i.T) / self.temperature
+                    ).sum()
                     num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
 
                     log_prob = torch.log(num) - torch.log(den)
-                    loss -= torch.mean(log_prob)
+                    total_loss -= torch.mean(log_prob)
 
-        return loss / z_a.shape[0]
+        for k in group_target.keys():
+            Z_j = torch.stack(group_target[k]).to(device)
+            if k in group_source.keys():
+                for z_i in group_source[k]:
+                    z_i = z_i.to(device)
+                    den = torch.exp(
+                        torch.matmul(z_a_target, z_i.T) / self.temperature
+                    ).sum()
+                    num = torch.exp(torch.matmul(Z_j, z_i.T) / self.temperature)
+
+                    log_prob = torch.log(num) - torch.log(den)
+                    total_loss -= torch.mean(log_prob)
+
+        return (total_loss) / z_a.shape[0]
