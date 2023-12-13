@@ -271,7 +271,7 @@ def train():
         loss_con = criterion_con(group_source, group_target_unlabeled)
 
         ################################
-        loss_comb = loss_ce + 0.5 * loss_con
+        loss_comb = loss_ce + 0.5 * loss_con + loss_t
 
         loss_comb.backward(retain_graph=True)
         optimizer_g.step()
