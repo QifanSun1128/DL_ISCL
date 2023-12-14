@@ -160,4 +160,4 @@ class ConLoss(nn.Module):
                     loss = weight_s[k] * margin_loss
                     total_loss -= torch.mean(loss)
 
-        return (total_loss) / z_a.shape[0]
+        return (total_loss) / (z_a.shape[0]*2)
