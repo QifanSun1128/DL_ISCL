@@ -1,13 +1,9 @@
-# [Semi-supervised Domain Adaptation via Minimax Entropy (ICCV 2019)](https://arxiv.org/pdf/1904.06487.pdf)
-
-![](docs/fig1.png)
+# CS482/682 Final Project Report Group 18: Semi-Supervised Domain Adaptation (SSDA)
 
 ## Install
 
 `pip install -r requirements.txt`
 
-The code is written for Pytorch 0.4.0, but should work for other version
-with some modifications.
 ## Data preparation (DomainNet)
 
 To get data, run
@@ -28,27 +24,21 @@ The dataset split files are stored as follows,
 
 `./data/txt/multi/validation_target_images_sketch_3.txt`.
 
-At the moment (8/18/2019), we do not publish all data of DomainNet because we hold a [competition](http://ai.bu.edu/visda-2019/) and some domains are used there.
-
-With regard to office and office home dataset, store the image files in the following ways,
-
- `./data/office/amazon/category_name`,
- `./data/office_home/Real/category_name`,
-
-We provide the split of office and office-home.
-
-
 ## Training
 
-To run training using alexnet,
+To run MME training using resnet34,
 
-`sh run_train.sh gpu_id method alexnet`
+`sh run_mme_train.sh gpu_id MME resnet34`
 
-where, gpu_id = 0,1,2,3...., method=[MME,ENT,S+T].
+To run ISCL training using resnet34,
 
+`sh run_iscl_train.sh gpu_id resnet34`
+
+where, gpu_id = 0,1,2,3...
 
 ### Reference
-This repository is contributed by [Kuniaki Saito](http://cs-people.bu.edu/keisaito/) and [Donghyun Kim](https://cs-people.bu.edu/donhk/)
+
+The code is built on repository contributed by [Kuniaki Saito](http://cs-people.bu.edu/keisaito/) and [Donghyun Kim](https://cs-people.bu.edu/donhk/)
 If you consider using this code or its derivatives, please consider citing:
 
 ```
@@ -59,8 +49,3 @@ If you consider using this code or its derivatives, please consider citing:
   year={2019}
 }
 ```
-
-
-
-
-
